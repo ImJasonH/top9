@@ -1,0 +1,99 @@
+<html>
+<body>
+  <button id="login">Login to Instagram</button>
+</body>
+<script type="text/javascript">
+if (window.location.hash.startsWith('#access_token=')) {
+  var tok = window.location.hash.substr('#access_token='.length);
+  window.opener.oauthDone(tok);
+  window.location.hash = '';
+  window.close(); // close this window.
+}
+
+const _CLIENT_ID = 'bc261551ba8447d9b84c7586dbce10f7';
+document.getElementById('login').onclick = function() {
+  var url = 'https://api.instagram.com/oauth/authorize/?client_id='+_CLIENT_ID+'&redirect_uri='+window.location+'&response_type=token';
+  var w = window.open(url);
+};
+
+var _ACCESS_TOKEN = '';
+function oauthDone(tok) {
+  _ACCESS_TOKEN = tok;
+  document.getElementById('login').style.display = 'none'; // Hide login button.
+  fetchAll(function(all) {
+    all.sort(function(a, b) {
+      var al = a.likes;
+      var bl = b.likes;
+      if (al > bl) { return -1; }
+      if (al < bl) { return 1; }
+      return 0;
+    });
+    var top = all.slice(0,9);
+    // TODO: Combine into one image.
+    for (var i = 0; i < top.length; i++) {
+      var img = document.createElement('img');
+      img.src = top[i].img;
+      img.alt = top[i].likes + ' likes';
+      document.body.appendChild(img);
+    }
+  });
+}
+
+_YEAR = 2016;
+function fetchAll(cb) {
+  var all = [];
+  var maxId = '';
+  var url = 'https://api.instagram.com/v1/users/self/media/recent/?count=100';
+  var add = function(resp) {
+    for (var i = 0; i < resp.data.length; i++ ) {
+      var item = resp.data[i];
+      var ts = parseInt(item.created_time)*1000;
+      var cutoff = new Date(_YEAR, 0).getTime();
+      if (ts < cutoff) {
+        cb(all);
+        return;
+      }
+      if (item.type == 'image') {
+        all.push({
+          'img':   item.images.standard_resolution.url,
+          'likes': item.likes.count,
+          'date': new Date(parseInt(item.created_time)*1000),
+        });
+      }
+    }
+    if (resp.pagination.next_url != undefined) {
+      fetch(resp.pagination.next_url, add);
+    } else {
+      cb(all);
+      return;
+    }
+    // TODO: keep paginating.
+  };
+  fetch(url, add);
+}
+
+var _CURRENT_CALLBACK = null;
+function jsonpCallback(resp) {
+  if (_CURRENT_CALLBACK) {
+    _CURRENT_CALLBACK(resp);
+    let head = document.getElementsByTagName('head')[0];
+    head.removeChild(head.lastChild); // remove just-added <script> tag.
+  } else {
+    console.error('Got JSONP callback with no callback', resp);
+  }
+}
+
+function fetch(url, cb) {
+  let add = '?';
+  if (url.includes('?')) {
+    add = '&';
+  }
+  _CURRENT_CALLBACK = cb;
+  var s = document.createElement('script');
+  s.type = 'text/javascript';
+  s.async = true;
+  s.src = url+add+'access_token='+_ACCESS_TOKEN+'&callback=jsonpCallback';
+  document.getElementsByTagName('head')[0].appendChild(s);
+}
+</script>
+</html>
