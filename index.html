@@ -1,7 +1,6 @@
 <html>
 <body>
   <button id="login">Login to Instagram</button>
-  <input type="text" id="search" placeholder="Search for users"></input>
   <canvas id="canvas"></canvas>
 </body>
 <script type="text/javascript">
@@ -25,10 +24,10 @@ function jsonpCallback(resp) {
 
 var _ACCESS_TOKEN = localStorage.getItem('accessToken');
 if (_ACCESS_TOKEN == null) {
-  document.getElementById('search').style.display = 'none';
+  document.getElementById('canvas').style.display = 'none';
   document.getElementById('login').onclick = function() {
     const _CLIENT_ID = 'bc261551ba8447d9b84c7586dbce10f7';
-    var url = 'https://api.instagram.com/oauth/authorize/?client_id='+_CLIENT_ID+'&redirect_uri='+window.location+'&response_type=token'+'&scope=basic+public_content';
+    var url = 'https://api.instagram.com/oauth/authorize/?client_id='+_CLIENT_ID+'&redirect_uri='+window.location+'&response_type=token';
     var w = window.open(url);
   };
 } else {
@@ -36,17 +35,11 @@ if (_ACCESS_TOKEN == null) {
   authed();
 }
 
-// TODO: fix search.
-document.getElementById('search').style.display = 'none';
-document.getElementById('search').onchange = function(e) {
-  console.log(e.target.value);
-  fetchAll(e.target.value, showImages);
-};
-
 function oauthDone(tok) {
   _ACCESS_TOKEN = tok;
   localStorage.setItem('accessToken', tok);
   document.getElementById('login').style.display = 'none';
+  document.getElementById('canvas').style.display = 'block';
   authed();
 }
 
@@ -83,9 +76,10 @@ function showImages(all) {
     var y = (size/3)*Math.floor(i/3);
     img.addEventListener('load', function() {
       ctx.drawImage(img, x, y, (size/3), (size/3));
-      var text = top[i].likes + '❤';
-      ctx.fillText(text, x+10, y+40);
-      ctx.strokeText(text, x+10, y+40);
+      // TODO: optionally add # of likes.
+      //var text = top[i].likes + '❤';
+      //ctx.fillText(text, x+10, y+40);
+      //ctx.strokeText(text, x+10, y+40);
     });
     img.setAttribute('crossOrigin', 'anonymous');
     img.src = top[i].img;
@@ -94,7 +88,6 @@ function showImages(all) {
     draw(i);
   }
   c.onclick = function() {
-    console.log('downloading', c.toDataURL());
     var a = document.createElement('a');
     a.href = c.toDataURL();
     a.download = 'top9';
