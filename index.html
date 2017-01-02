@@ -1,8 +1,6 @@
 <html>
-<body>
-  <button id="login">Login to Instagram</button>
-  <canvas id="canvas"></canvas>
-</body>
+<head>
+<title>Top 9 Posts of 2016</title>
 <script type="text/javascript">
 if (window.location.hash.startsWith('#access_token=')) {
   var tok = window.location.hash.substr('#access_token='.length);
@@ -10,7 +8,50 @@ if (window.location.hash.startsWith('#access_token=')) {
   window.location.hash = '';
   window.close(); // close this window.
 }
+</script>
+<style>
+body {
+  font-family: 'Arial';
+}
 
+div#container, div#login-container {
+  width: 90%;
+  margin: auto;
+}
+
+button#login {
+  width: 300px;
+  height: 100px;
+  margin: auto;
+  display: block;
+  background-color: green;
+  color: white;
+  font-size: 20px;
+}
+
+h1, h3 {
+  text-align: center;
+}
+
+canvas {
+  width: 100%;
+  cursor: pointer;
+}
+</style>
+</head>
+<body>
+<div id="login-container">
+  <h1>Share your top 9 posts on Instagram</h1>
+  <button id="login">Login to Instagram to get started</button>
+</div>
+
+<div id="container">
+  <h3>Here's your Top 9! Click to save and share</h3>
+  <canvas id="canvas"></canvas>
+</div>
+</div>
+</body>
+<script type="text/javascript">
 var _CURRENT_CALLBACK = null;
 function jsonpCallback(resp) {
   if (_CURRENT_CALLBACK) {
@@ -24,22 +65,24 @@ function jsonpCallback(resp) {
 
 var _ACCESS_TOKEN = localStorage.getItem('accessToken');
 if (_ACCESS_TOKEN == null) {
-  document.getElementById('canvas').style.display = 'none';
-  document.getElementById('login').onclick = function() {
+  document.getElementById('container').style.display = 'none';
+  var login = document.getElementById('login');
+  login.onclick = function() {
     const _CLIENT_ID = 'bc261551ba8447d9b84c7586dbce10f7';
     var url = 'https://api.instagram.com/oauth/authorize/?client_id='+_CLIENT_ID+'&redirect_uri='+window.location+'&response_type=token';
     var w = window.open(url);
   };
+  login.ontouchstart = login.onclick;
 } else {
-  document.getElementById('login').style.display = 'none';
+  document.getElementById('login-container').style.display = 'none';
   authed();
 }
 
 function oauthDone(tok) {
   _ACCESS_TOKEN = tok;
   localStorage.setItem('accessToken', tok);
-  document.getElementById('login').style.display = 'none';
-  document.getElementById('canvas').style.display = 'block';
+  document.getElementById('login-container').style.display = 'none';
+  document.getElementById('container').style.display = 'block';
   authed();
 }
 
@@ -93,6 +136,7 @@ function showImages(all) {
     a.download = 'top9';
     a.click();
   }
+  c.ontouchstart = c.onclick;
 }
 
 _YEAR = 2016;
