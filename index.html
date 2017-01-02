@@ -2,6 +2,7 @@
 <body>
   <button id="login">Login to Instagram</button>
   <input type="text" id="search" placeholder="Search for users"></input>
+  <canvas id="canvas"></canvas>
 </body>
 <script type="text/javascript">
 if (window.location.hash.startsWith('#access_token=')) {
@@ -35,6 +36,8 @@ if (_ACCESS_TOKEN == null) {
   authed();
 }
 
+// TODO: fix search.
+document.getElementById('search').style.display = 'none';
 document.getElementById('search').onchange = function(e) {
   console.log(e.target.value);
   fetchAll(e.target.value, showImages);
@@ -52,6 +55,11 @@ function authed() {
 }
 
 function showImages(all) {
+  if (all.length < 9) {
+    alert('Not enough images to make a Top 9');
+    return;
+  }
+
   all.sort(function(a, b) {
     var al = a.likes;
     var bl = b.likes;
@@ -60,12 +68,37 @@ function showImages(all) {
     return 0;
   });
   var top = all.slice(0,9);
-  // TODO: Combine into one image.
-  for (var i = 0; i < top.length; i++) {
-    var img = document.createElement('img');
+
+  var c = document.getElementById('canvas');
+  const size = 600;
+  c.height = size;
+  c.width = size;
+  var ctx = c.getContext('2d');
+  ctx.fillStyle = 'red';
+  ctx.strokeStyle = 'white';
+  ctx.font = '30px sans-serif';
+  var draw = function(i) {
+    var img = new Image();
+    var x = (size/3)*(i%3);
+    var y = (size/3)*Math.floor(i/3);
+    img.addEventListener('load', function() {
+      ctx.drawImage(img, x, y, (size/3), (size/3));
+      var text = top[i].likes + '❤';
+      ctx.fillText(text, x+10, y+40);
+      ctx.strokeText(text, x+10, y+40);
+    });
+    img.setAttribute('crossOrigin', 'anonymous');
     img.src = top[i].img;
-    img.alt = top[i].likes + ' likes';
-    document.body.appendChild(img);
+  };
+  for (var i = 0; i < top.length; i++) {
+    draw(i);
+  }
+  c.onclick = function() {
+    console.log('downloading', c.toDataURL());
+    var a = document.createElement('a');
+    a.href = c.toDataURL();
+    a.download = 'top9';
+    a.click();
   }
 }
 
