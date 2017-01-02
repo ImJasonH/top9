@@ -34,8 +34,8 @@ h1, h3 {
 }
 
 canvas {
-  width: 100%;
   cursor: pointer;
+  width: auto;
 }
 </style>
 </head>
@@ -106,7 +106,7 @@ function showImages(all) {
   var top = all.slice(0,9);
 
   var c = document.getElementById('canvas');
-  const size = 600;
+  const size = window.innerWidth * .88;
   c.height = size;
   c.width = size;
   var ctx = c.getContext('2d');
@@ -132,7 +132,7 @@ function showImages(all) {
   }
   c.onclick = function() {
     var a = document.createElement('a');
-    a.href = c.toDataURL();
+    a.href = c.toDataURL('image/jpeg');
     a.download = 'top9';
     a.click();
   }
