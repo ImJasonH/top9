@@ -124,7 +124,11 @@ function showImages(all) {
     var x = (size/3)*(i%3);
     var y = (size/3)*Math.floor(i/3);
     img.addEventListener('load', function() {
-      ctx.drawImage(img, x, y, (size/3), (size/3));
+      // For non-square media, crop to largest central square.
+      var min = Math.min(img.width, img.height);
+      var sx = (img.width-min)/2;
+      var sy = (img.height-min)/2;
+      ctx.drawImage(img, sx, sy, min, min, x, y, (size/3), (size/3));
       // TODO: optionally add # of likes.
       //var text = top[i].likes + '❤';
       //ctx.fillText(text, x+10, y+40);
