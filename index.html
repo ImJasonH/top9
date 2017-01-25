@@ -33,6 +33,10 @@ h1, h3 {
   text-align: center;
 }
 
+input:invalid {
+  border: red 1px solid;
+}
+
 canvas {
   cursor: pointer;
   width: auto;
@@ -48,6 +52,11 @@ canvas {
 <div id="container">
   <h3>Here's your Top 9! Click to save and share</h3>
   <canvas id="canvas"></canvas>
+
+<form action="javascript:void(0);">
+  <input type="text" id="search" list="searchfill" placeholder="Search for other users"></input>
+  <datalist id="searchfill"></datalist><button id="searchsubmit">Search Users</button>
+</form>
 </div>
 </div>
 </body>
@@ -68,8 +77,8 @@ if (_ACCESS_TOKEN == null) {
   document.getElementById('container').style.display = 'none';
   var login = document.getElementById('login');
   login.onclick = function() {
-    const _CLIENT_ID = 'bc261551ba8447d9b84c7586dbce10f7';
-    var url = 'https://api.instagram.com/oauth/authorize/?client_id='+_CLIENT_ID+'&redirect_uri='+window.location+'&response_type=token';
+    const _CLIENT_ID = 'da2761c2a48c4273b37932f89cd0f35a';
+    var url = 'https://api.instagram.com/oauth/authorize/?client_id='+_CLIENT_ID+'&redirect_uri='+window.location+'&scope=basic+public_content&response_type=token';
     var w = window.open(url);
   };
   login.ontouchstart = login.onclick;
@@ -106,7 +115,7 @@ function showImages(all) {
   var top = all.slice(0,9);
 
   var c = document.getElementById('canvas');
-  const size = window.innerWidth * .88;
+  const size = window.innerWidth * .5;
   c.height = size;
   c.width = size;
   var ctx = c.getContext('2d');
@@ -139,6 +148,54 @@ function showImages(all) {
   c.ontouchstart = c.onclick;
 }
 
+var search = document.getElementById('search');
+var searchfill = document.getElementById('searchfill');
+function clearSearchFill() {
+  while (searchfill.firstChild) {
+    searchfill.removeChild(searchfill.firstChild);
+  }
+}
+search.oninput = function(e) {
+  search.setCustomValidity('');
+  clearSearchFill();
+  if (search.value.length <= 3) {
+    return;
+  }
+  searchUsers(search.value, function(resp) {
+    if (resp.data.length == 0) {
+      search.setCustomValidity('No matching users');
+      search.reportValidity();
+      return;
+    }
+    for (var i = 0; i < resp.data.length; i++) {
+      var opt = document.createElement('option');
+      opt.value = resp.data[i].username;
+      searchfill.appendChild(opt);
+    }
+  });
+};
+document.getElementById('searchsubmit');
+searchsubmit.onclick = function() {
+  var text = search.value;
+  if (text.length == 0) {
+    return;
+  }
+  searchUsers(text, function(resp) {
+    if (resp.data.length == 0) {
+      search.setCustomValidity('No such user');
+      search.reportValidity();
+      return;
+    }
+    fetchAll(text, showImages);
+  });
+};
+search.onsubmit = searchsubmit.onclick;
+
+function searchUsers(str, cb) {
+  var url = 'https://api.instagram.com/v1/users/search?q='+str;
+  fetch(url, cb);
+}
+
 _YEAR = 2016;
 function fetchAll(user, cb) {
   var all = [];
@@ -167,7 +224,6 @@ function fetchAll(user, cb) {
       cb(all);
       return;
     }
-    // TODO: keep paginating.
   };
   fetch(url, add);
 }
