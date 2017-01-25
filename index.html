@@ -139,7 +139,9 @@ function showImages(all) {
       ctx.drawImage(img, sx, sy, min, min, x, y, (size/3), (size/3));
       if (showlikes.checked) {
         var likes = top[i].likes;
-	if (likes > 1000) {
+        if (likes > 1000000) {
+          likes = (likes/1000000).toFixed(1) + 'M';
+        } else if (likes > 1000) {
           likes = (likes/1000).toFixed(1) + 'K';
 	}
         var text = likes + '❤';
